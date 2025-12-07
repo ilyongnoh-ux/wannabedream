@@ -7,21 +7,21 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 # --------------------------------------------------------------------------
-# [UI 함수] 화면 폭에 따라 폰트 크기 자동 조절 (한 줄 유지)
+# [UI 함수] 반응형 텍스트 (다크모드 호환 패치)
 # --------------------------------------------------------------------------
-def responsive_text(text, type="title", color="#000000"):
+def responsive_text(text, type="title"):
     """
-    vw(viewport width) 단위를 사용하여 화면 너비에 따라 글자 크기가 변하도록 설정
-    white-space: nowrap 속성으로 줄바꿈 강제 방지
+    화면 너비에 따라 글자 크기 자동 조절.
+    색상은 지정하지 않아 Streamlit 테마(다크/라이트)를 따름.
     """
     if type == "title":
-        # 제목용: 최소 20px, 최대 40px, 평소 화면의 6% 크기
-        style = f"font-size: clamp(20px, 6vw, 40px); font-weight: 700; color: {color}; margin-bottom: 10px;"
+        # 제목용: 크고 굵게
+        style = f"font-size: clamp(20px, 6vw, 40px); font-weight: 700; margin-bottom: 10px;"
     elif type == "result":
-        # 결과용: 최소 18px, 최대 30px, 평소 화면의 5% 크기
-        style = f"font-size: clamp(18px, 5vw, 30px); font-weight: 600; color: {color};"
+        # 결과용: 적당히 크고 굵게
+        style = f"font-size: clamp(18px, 5vw, 30px); font-weight: 600;"
     else:
-        style = f"font-size: 16px; color: {color};"
+        style = f"font-size: 16px;"
         
     st.markdown(f"""
     <div style="display: flex; justify-content: center; width: 100%;">
@@ -86,9 +86,9 @@ def calculate_golf_life(current_age, retire_age, target_age, assets, saving, rou
 # --------------------------------------------------------------------------
 # UI 구성
 # --------------------------------------------------------------------------
-# [변경] 기존 st.title 대신 반응형 텍스트 함수 사용
+# [변경] 색상 지정 삭제 -> 시스템 테마 자동 적용
 responsive_text("⛳ 나의 골프 수명 배터리", type="title")
-st.markdown("<div style='text-align: center; color: gray; font-size: 0.9em;'>슬라이더를 움직여 미래를 확인하세요</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; opacity: 0.7; font-size: 0.9em;'>슬라이더를 움직여 미래를 확인하세요</div>", unsafe_allow_html=True)
 st.divider()
 
 col1, col2 = st.columns(2)
@@ -117,17 +117,14 @@ survive_years = bankruptcy_age - current_age
 battery_percent = min(100, max(0, int((survive_years / total_years) * 100)))
 
 if battery_percent >= 100:
-    color = "green"
     msg = f"완벽합니다! {target_age}세까지 거뜬합니다. 🎉"
 elif battery_percent >= 70:
-    color = "orange"
     msg = f"아슬아슬합니다. {bankruptcy_age}세에 자금이 바닥납니다. ⚠️"
 else:
-    color = "red"
     msg = f"위험합니다! {bankruptcy_age}세부터 골프 파산입니다. 🚨"
 
-# [변경] 결과 메시지도 반응형으로 적용
-responsive_text(f"예상 골프 수명: {bankruptcy_age}세", type="result", color="#333333")
+# [변경] 결과 메시지 색상 제거 -> 다크모드에서 흰색으로 잘 보임
+responsive_text(f"예상 골프 수명: {bankruptcy_age}세", type="result")
 st.progress(battery_percent / 100)
 
 if status == "DANGER":
