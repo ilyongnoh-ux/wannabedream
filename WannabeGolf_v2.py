@@ -7,28 +7,24 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 # --------------------------------------------------------------------------
-# [UI 함수] 반응형 텍스트 (화면 꽉 차게 최대화)
+# [UI 함수] 반응형 텍스트 & 강조 박스
 # --------------------------------------------------------------------------
 def responsive_text(text, type="title"):
     """
     화면 너비(vw)를 기준으로 폰트 크기를 최대한 키움 (Max Width)
     """
     if type == "title":
-        # [메인 타이틀] 10~12글자 기준, 화면의 80% 이상 채우도록 설정
-        # 기존 6vw -> 9vw로 대폭 확대
+        # [메인 타이틀]
         style = "font-size: clamp(24px, 9vw, 50px); font-weight: 800; margin-bottom: 15px; white-space: nowrap; line-height: 1.2;"
         div_style = "margin-bottom: 10px;"
         
     elif type == "result_unified":
         # [진단 결과 & 예상 수명]
-        # 가장 중요한 정보이므로 화면 밖으로 튀어 나가지 않는 선에서 제일 크게(Max)
-        # 기존 5.5vw -> 8.5vw로 확대 (10글자 내외가 한 줄에 꽉 참)
         style = "font-size: clamp(26px, 8.5vw, 60px); font-weight: 900; line-height: 1.3; letter-spacing: -1px;" 
         div_style = "margin: 5px 0;"
         
     elif type == "subheader_one_line":
         # [신청 폼 제목]
-        # 기존 4.5vw -> 6.5vw로 확대
         style = "font-size: clamp(18px, 6.5vw, 35px); font-weight: 700; white-space: nowrap;"
         div_style = "margin-top: 40px; margin-bottom: 10px;"
         
@@ -153,23 +149,17 @@ bankruptcy_age, status, df_history = calculate_golf_life(current_age, retire_age
 st.divider()
 
 # --------------------------------------------------------------------------
-# 결과 표시 영역 (최대 크기)
+# 결과 표시 영역
 # --------------------------------------------------------------------------
-
-# 1. "진단 결과" 텍스트 (통일된 최대 크기)
 responsive_text("📊 진단 결과", type="result_unified")
-
-# 2. "예상 골프 수명" 텍스트 (통일된 최대 크기)
 responsive_text(f"예상 골프 수명: {bankruptcy_age}세", type="result_unified")
 
-# 배터리 계산
 total_years = target_age - current_age
 survive_years = bankruptcy_age - current_age
 battery_percent = min(100, max(0, int((survive_years / total_years) * 100)))
 
 st.progress(battery_percent / 100)
 
-# 3. 해설 메시지 박스
 if battery_percent >= 100:
     msg = f"완벽합니다!<br>{target_age}세까지 거뜬합니다!"
     status_code = "SAFE"
@@ -187,12 +177,10 @@ else:
 
 emphasized_box(msg, status=status_code)
 
-# 상세 금액 안내
 if status_code != "SAFE":
     st.markdown(f"<div style='text-align: center; font-size: 1.2em; font-weight: bold; color: gray;'>📉 85세까지 약 {abs(shortfall // 10000):,.0f}만 원이 더 필요합니다.</div>", unsafe_allow_html=True)
 else:
     st.markdown(f"<div style='text-align: center; font-size: 1.2em; font-weight: bold; color: gray;'>📈 자금은 충분합니다. 이제 건강을 지키세요.</div>", unsafe_allow_html=True)
-
 
 st.divider()
 
@@ -234,3 +222,12 @@ with st.form("lead_form"):
             if is_success:
                 st.success(f"{user_name}님! 신청이 완료되었습니다. 곧 연락드리겠습니다.")
                 st.balloons()
+
+# --------------------------------------------------------------------------
+# [NEW] Footer (기업 정보)
+# --------------------------------------------------------------------------
+st.markdown("""
+    <div style='text-align: center; margin-top: 50px; color: #888; font-size: 12px; font-weight: 500;'>
+        Korea Financial Investment Technology(KFIT)® / WannabeDream®
+    </div>
+""", unsafe_allow_html=True)
