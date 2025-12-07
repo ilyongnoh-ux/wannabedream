@@ -7,30 +7,30 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 # --------------------------------------------------------------------------
-# [UI 함수] 반응형 텍스트 (폰트 통일 및 디자인 수정)
+# [UI 함수] 반응형 텍스트 (화면 꽉 차게 최대화)
 # --------------------------------------------------------------------------
 def responsive_text(text, type="title"):
     """
-    type에 따라 글자 크기와 스타일을 다르게 적용
+    화면 너비(vw)를 기준으로 폰트 크기를 최대한 키움 (Max Width)
     """
     if type == "title":
-        # [메인 타이틀]
-        style = "font-size: clamp(20px, 6vw, 40px); font-weight: 700; margin-bottom: 10px; white-space: nowrap;"
+        # [메인 타이틀] 10~12글자 기준, 화면의 80% 이상 채우도록 설정
+        # 기존 6vw -> 9vw로 대폭 확대
+        style = "font-size: clamp(24px, 9vw, 50px); font-weight: 800; margin-bottom: 15px; white-space: nowrap; line-height: 1.2;"
         div_style = "margin-bottom: 10px;"
         
     elif type == "result_unified":
-        # [수정됨] 진단 결과 & 예상 수명을 동일한 크기로 통일
-        # clamp(최소, 가변, 최대) -> 헤드라인(st.header)과 비슷한 크기지만 반응형
-        style = "font-size: clamp(22px, 5.5vw, 36px); font-weight: 800; line-height: 1.3; color: #31333F;" 
-        # color를 지정하지 않으면 다크모드 자동 호환되지만, 강조를 위해 테마 텍스트 컬러 사용 권장. 
-        # 여기서는 자동 색상 사용을 위해 color 속성 제거하고 굵기만 유지
-        style = "font-size: clamp(22px, 5.5vw, 36px); font-weight: 800; line-height: 1.3;"
+        # [진단 결과 & 예상 수명]
+        # 가장 중요한 정보이므로 화면 밖으로 튀어 나가지 않는 선에서 제일 크게(Max)
+        # 기존 5.5vw -> 8.5vw로 확대 (10글자 내외가 한 줄에 꽉 참)
+        style = "font-size: clamp(26px, 8.5vw, 60px); font-weight: 900; line-height: 1.3; letter-spacing: -1px;" 
         div_style = "margin: 5px 0;"
         
     elif type == "subheader_one_line":
         # [신청 폼 제목]
-        style = "font-size: clamp(16px, 4.5vw, 28px); font-weight: 700; white-space: nowrap;"
-        div_style = "margin-top: 30px;"
+        # 기존 4.5vw -> 6.5vw로 확대
+        style = "font-size: clamp(18px, 6.5vw, 35px); font-weight: 700; white-space: nowrap;"
+        div_style = "margin-top: 40px; margin-bottom: 10px;"
         
     else:
         style = "font-size: 16px;"
@@ -46,7 +46,7 @@ def responsive_text(text, type="title"):
 
 def emphasized_box(msg, status="SAFE"):
     """
-    결과 해설 박스 (강조 디자인)
+    결과 해설 박스
     """
     if status == "DANGER":
         bg_color = "#FF4B4B" # 빨강
@@ -61,14 +61,14 @@ def emphasized_box(msg, status="SAFE"):
     st.markdown(f"""
     <div style="
         background-color: {bg_color};
-        padding: 20px;
+        padding: 25px;
         border-radius: 15px;
-        margin-top: 15px;
-        margin-bottom: 20px;
+        margin-top: 20px;
+        margin-bottom: 30px;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     ">
-        <div style="font-size: clamp(20px, 5vw, 32px); font-weight: 800; color: white; line-height: 1.4; word-break: keep-all;">
+        <div style="font-size: clamp(22px, 7vw, 40px); font-weight: 800; color: white; line-height: 1.3; word-break: keep-all;">
             {icon} {msg}
         </div>
     </div>
@@ -130,7 +130,7 @@ def calculate_golf_life(current_age, retire_age, target_age, assets, saving, rou
 # UI 구성
 # --------------------------------------------------------------------------
 responsive_text("⛳ 나의 골프 수명 배터리", type="title")
-st.markdown("<div style='text-align: center; opacity: 0.7; font-size: 0.9em; margin-bottom: 20px;'>슬라이더를 움직여 미래를 확인하세요</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; opacity: 0.7; font-size: 1.0em; margin-bottom: 25px;'>👇 슬라이더를 움직여 미래를 확인하세요</div>", unsafe_allow_html=True)
 st.divider()
 
 col1, col2 = st.columns(2)
@@ -153,14 +153,13 @@ bankruptcy_age, status, df_history = calculate_golf_life(current_age, retire_age
 st.divider()
 
 # --------------------------------------------------------------------------
-# [수정] 결과 표시 영역 (폰트 크기 통일)
+# 결과 표시 영역 (최대 크기)
 # --------------------------------------------------------------------------
-# 기존 st.header("진단 결과") 삭제하고 아래 코드로 대체
 
-# 1. "진단 결과" 텍스트 (통일된 크기)
+# 1. "진단 결과" 텍스트 (통일된 최대 크기)
 responsive_text("📊 진단 결과", type="result_unified")
 
-# 2. "예상 골프 수명" 텍스트 (통일된 크기)
+# 2. "예상 골프 수명" 텍스트 (통일된 최대 크기)
 responsive_text(f"예상 골프 수명: {bankruptcy_age}세", type="result_unified")
 
 # 배터리 계산
@@ -190,9 +189,9 @@ emphasized_box(msg, status=status_code)
 
 # 상세 금액 안내
 if status_code != "SAFE":
-    st.markdown(f"<div style='text-align: center; font-size: 1.1em; font-weight: bold; color: gray;'>📉 85세까지 약 {abs(shortfall // 10000):,.0f}만 원이 더 필요합니다.</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align: center; font-size: 1.2em; font-weight: bold; color: gray;'>📉 85세까지 약 {abs(shortfall // 10000):,.0f}만 원이 더 필요합니다.</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div style='text-align: center; font-size: 1.1em; font-weight: bold; color: gray;'>📈 자금은 충분합니다. 이제 건강을 지키세요.</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align: center; font-size: 1.2em; font-weight: bold; color: gray;'>📈 자금은 충분합니다. 이제 건강을 지키세요.</div>", unsafe_allow_html=True)
 
 
 st.divider()
