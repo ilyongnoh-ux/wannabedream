@@ -7,26 +7,44 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 # --------------------------------------------------------------------------
-# [설정] 구글 시트 연동 함수
+# [UI 함수] 화면 폭에 따라 폰트 크기 자동 조절 (한 줄 유지)
 # --------------------------------------------------------------------------
-# [수정된 부분] 구글 시트 연동 함수 (로컬/클라우드 호환)
+def responsive_text(text, type="title", color="#000000"):
+    """
+    vw(viewport width) 단위를 사용하여 화면 너비에 따라 글자 크기가 변하도록 설정
+    white-space: nowrap 속성으로 줄바꿈 강제 방지
+    """
+    if type == "title":
+        # 제목용: 최소 20px, 최대 40px, 평소 화면의 6% 크기
+        style = f"font-size: clamp(20px, 6vw, 40px); font-weight: 700; color: {color}; margin-bottom: 10px;"
+    elif type == "result":
+        # 결과용: 최소 18px, 최대 30px, 평소 화면의 5% 크기
+        style = f"font-size: clamp(18px, 5vw, 30px); font-weight: 600; color: {color};"
+    else:
+        style = f"font-size: 16px; color: {color};"
+        
+    st.markdown(f"""
+    <div style="display: flex; justify-content: center; width: 100%;">
+        <span style="{style} white-space: nowrap; overflow: visible;">
+            {text}
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --------------------------------------------------------------------------
+# [기능] 구글 시트 연동 함수
+# --------------------------------------------------------------------------
 def save_to_google_sheet(data):
     try:
-        # 인증 범위 설정
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         
-        # [변경점] secrets에서 정보를 가져와서 딕셔너리로 만듦
-        # Streamlit Cloud 환경인지 확인
         if "gcp_service_account" in st.secrets:
             key_dict = dict(st.secrets["gcp_service_account"])
             creds = ServiceAccountCredentials.from_json_keyfile_dict(key_dict, scope)
         else:
-            # 로컬 환경 (기존 방식)
             creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
             
         client = gspread.authorize(creds)
-
-        # 시트 열기
         sheet = client.open("WannabeDB").sheet1 
         sheet.append_row(data)
         return True
@@ -68,8 +86,9 @@ def calculate_golf_life(current_age, retire_age, target_age, assets, saving, rou
 # --------------------------------------------------------------------------
 # UI 구성
 # --------------------------------------------------------------------------
-st.title("⛳ 나의 골프 수명 배터리")
-st.markdown("### 슬라이더를 움직여 미래를 확인하세요")
+# [변경] 기존 st.title 대신 반응형 텍스트 함수 사용
+responsive_text("⛳ 나의 골프 수명 배터리", type="title")
+st.markdown("<div style='text-align: center; color: gray; font-size: 0.9em;'>슬라이더를 움직여 미래를 확인하세요</div>", unsafe_allow_html=True)
 st.divider()
 
 col1, col2 = st.columns(2)
@@ -107,7 +126,8 @@ else:
     color = "red"
     msg = f"위험합니다! {bankruptcy_age}세부터 골프 파산입니다. 🚨"
 
-st.markdown(f"### 예상 골프 수명: **{bankruptcy_age}세**")
+# [변경] 결과 메시지도 반응형으로 적용
+responsive_text(f"예상 골프 수명: {bankruptcy_age}세", type="result", color="#333333")
 st.progress(battery_percent / 100)
 
 if status == "DANGER":
@@ -123,20 +143,16 @@ else:
 st.divider()
 
 # --------------------------------------------------------------------------
-# [NEW] DB 수집 폼 (Form)
+# DB 수집 폼
 # --------------------------------------------------------------------------
 st.subheader("🎁 내 맞춤형 리포트 무료 신청")
 st.info("신청하시면 '골프 자산 포트폴리오' PDF를 카카오톡으로 보내드립니다.")
 
 with st.form("lead_form"):
-    # 고객 정보 입력 필드 추가
     c1, c2 = st.columns(2)
     user_name = c1.text_input("성함", placeholder="홍길동")
     user_phone = c2.text_input("연락처", placeholder="010-0000-0000")
-    
-    # 개인정보 동의 (형식상)
     agreement = st.checkbox("개인정보 수집 및 이용에 동의합니다.")
-    
     submit_btn = st.form_submit_button("무료 리포트 받기", use_container_width=True)
 
     if submit_btn:
@@ -145,18 +161,17 @@ with st.form("lead_form"):
         elif not agreement:
             st.warning("개인정보 동의에 체크해주세요.")
         else:
-            # 저장할 데이터 리스트 구성
             save_data = [
-                str(datetime.now()), # 시간
-                user_name,           # 이름
-                user_phone,          # 전화번호
-                current_age,         # 나이
-                retire_age,          # 은퇴나이
-                assets,              # 자산
-                saving,              # 저축액
-                rounds,              # 라운딩횟수
-                bankruptcy_age,      # 파산나이
-                result_msg           # 진단결과
+                str(datetime.now()), 
+                user_name, 
+                user_phone, 
+                current_age, 
+                retire_age, 
+                assets, 
+                saving, 
+                rounds, 
+                bankruptcy_age, 
+                result_msg 
             ]
             
             with st.spinner('데이터 저장 중...'):
@@ -164,4 +179,4 @@ with st.form("lead_form"):
                 
             if is_success:
                 st.success(f"{user_name}님! 신청이 완료되었습니다. 곧 연락드리겠습니다.")
-                st.balloons() # 성공 축하 효과
+                st.balloons()
